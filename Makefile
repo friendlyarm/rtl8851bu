@@ -141,6 +141,10 @@ CONFIG_DBG_AX_CAM = y
 USE_TRUE_PHY = y
 CONFIG_I386_BUILD_VERIFY = n
 CONFIG_RTW_MBO = y
+
+# disable virtual intf for openwrt 21.02
+CONFIG_RTW_VIRTUAL_INTF = n
+
 # CONFIG_RTKM - n/m/y for not support / standalone / built-in
 CONFIG_RTKM ?= n
 ########################## Android ###########################
@@ -743,6 +747,10 @@ EXTRA_CFLAGS += -DCONFIG_RTW_MBO -DCONFIG_RTW_WNM -DCONFIG_RTW_BTM_ROAM
 EXTRA_CFLAGS += -DCONFIG_RTW_80211K
 EXTRA_CFLAGS += -DCONFIG_RTW_80211R
 EXTRA_CFLAGS += -DRTW_FT_DBG=0 -DRTW_WNM_DBG=0 -DRTW_MBO_DBG=0
+endif
+
+ifeq ($(CONFIG_RTW_VIRTUAL_INTF), y)
+EXTRA_CFLAGS += -DRTW_VIRTUAL_INTF=1
 endif
 
 # { FriendlyARM boards support

@@ -1585,7 +1585,7 @@ void rtw_start_bss_hdl_after_chbw_decided(_adapter *adapter, struct _ADAPTER_LIN
 	sta = rtw_get_stainfo(&adapter->stapriv, pnetwork->MacAddress);
 	if (!sta) {
 		RTW_INFO(FUNC_ADPT_FMT" !sta for macaddr="MAC_FMT"\n", FUNC_ADPT_ARG(adapter), MAC_ARG(pnetwork->MacAddress));
-		rtw_warn_on(1);
+		WARN_ON_ONCE(1);
 		return;
 	}
 

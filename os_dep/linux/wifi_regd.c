@@ -15,6 +15,15 @@
 
 #include <drv_types.h>
 
+#if defined(CPTCFG_KERNEL_CODE)
+#undef LINUX_VERSION_CODE
+#define LINUX_VERSION_CODE CPTCFG_KERNEL_CODE
+#endif
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0))
+#define CFG80211_HAS_PUNCT_BITMAP 1
+#endif
+
 #ifdef CONFIG_IOCTL_CFG80211
 #if !RTW_PER_ADAPTER_WIPHY
 void rtw_chset_hook_os_channels(struct rtw_chset *chset, void *os_ref)
@@ -149,7 +158,7 @@ static void rtw_regd_schedule_dfs_chan_update(struct wiphy *wiphy)
 		rtw_regd_set_du_chdef(wiphy);
 	}
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0))
+#if defined(CFG80211_HAS_PUNCT_BITMAP)
 	/* ToDo CONFIG_RTW_MLD */
 	cfg80211_ch_switch_notify(wiphy_data->du_wdev->netdev, &wiphy_data->du_chdef, 0, 0);
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 2))

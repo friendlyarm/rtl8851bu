@@ -48,8 +48,10 @@
 
 #endif
 
+#ifndef CONFIG_VENDOR_FRIENDLYELEC
 #if (defined(__ANDROID_COMMON_KERNEL__) && !defined(CONFIG_RTW_ANDROID))
 	#error "Set CONFIG_RTW_ANDROID in Makefile while build with Android Common Kernel!!"
+#endif
 #endif
 
 #ifdef CONFIG_RTW_ANDROID

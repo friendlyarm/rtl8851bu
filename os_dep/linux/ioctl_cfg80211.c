@@ -16,6 +16,15 @@
 
 #include <drv_types.h>
 
+#if defined(CPTCFG_KERNEL_CODE)
+#undef LINUX_VERSION_CODE
+#define LINUX_VERSION_CODE CPTCFG_KERNEL_CODE
+#endif
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0))
+#define CFG80211_HAS_PUNCT_BITMAP 1
+#endif
+
 #ifdef CONFIG_IOCTL_CFG80211
 
 #ifndef DBG_RTW_CFG80211_STA_PARAM
@@ -268,7 +277,7 @@ u8 rtw_cfg80211_ch_switch_notify(_adapter *adapter,
 	if (!rtw_cfg80211_allow_ch_switch_notify(adapter))
 		goto exit;
 
-	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0))
+	#if defined(CFG80211_HAS_PUNCT_BITMAP)
 	cfg80211_ch_switch_notify(adapter->pnetdev, &chdef, link_id, punct_bitmap);
 	#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 2))
 	/* ToDo CONFIG_RTW_MLD */

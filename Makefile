@@ -1,11 +1,12 @@
 EXTRA_CFLAGS += $(USER_EXTRA_CFLAGS)
-EXTRA_CFLAGS += -O1
+EXTRA_CFLAGS += -O2
 #EXTRA_CFLAGS += -O3
 #EXTRA_CFLAGS += -Wall
 #EXTRA_CFLAGS += -Wextra
 #EXTRA_CFLAGS += -Werror
 #EXTRA_CFLAGS += -pedantic
 #EXTRA_CFLAGS += -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes
+EXTRA_CFLAGS += -Wno-missing-declarations -Wno-missing-prototypes -Wno-enum-conversion
 
 EXTRA_CFLAGS += -Wno-unused-variable
 #EXTRA_CFLAGS += -Wno-unused-value
@@ -151,11 +152,11 @@ EXTRA_CFLAGS += -DCONFIG_RTW_ANDROID=$(CONFIG_RTW_ANDROID)
 endif
 
 ########################## Debug ###########################
-CONFIG_RTW_DEBUG = y
+CONFIG_RTW_DEBUG = n
 # default log level is _DRV_INFO_ = 4,
 # please refer to "How_to_set_driver_debug_log_level.doc" to set the available level.
-CONFIG_RTW_LOG_LEVEL = 4
-CONFIG_RTW_PHL_LOG_LEVEL = 4
+CONFIG_RTW_LOG_LEVEL = 3
+CONFIG_RTW_PHL_LOG_LEVEL = 3
 
 # CONFIG_RTW_APPEND_LOGLEVEL decide if append kernel log level to each messages.
 # default "n" for don't append.
@@ -223,7 +224,7 @@ CONFIG_LAYER2_ROAMING = y
 CONFIG_ROAMING_FLAG = 0x3
 
 ###################### Platform Related #######################
-CONFIG_PLATFORM_I386_PC = y
+CONFIG_PLATFORM_I386_PC = n
 CONFIG_PLATFORM_RTL8198D = n
 CONFIG_PLATFORM_ANDROID_X86 = n
 CONFIG_PLATFORM_ANDROID_INTEL_X86 = n
@@ -743,6 +744,70 @@ EXTRA_CFLAGS += -DCONFIG_RTW_80211K
 EXTRA_CFLAGS += -DCONFIG_RTW_80211R
 EXTRA_CFLAGS += -DRTW_FT_DBG=0 -DRTW_WNM_DBG=0 -DRTW_MBO_DBG=0
 endif
+
+# { FriendlyARM boards support
+ifeq ($(CONFIG_VENDOR_FRIENDLYARM), y)
+MODULE_NAME := rtl8851bu
+
+ifeq ($(KERNELRELEASE),)
+$(info ********************************************************************************)
+$(info *  Building module - $(MODULE_NAME).ko for FriendlyARM boards)
+endif
+
+ifneq ($(BACKPORT_DIR),)
+include $(BACKPORT_DIR)/versions
+
+ifeq ($(BACKPORTED_LINUX_VERSION_CODE),)
+$(error "BACKPORTED_LINUX_VERSION_CODE is undefined")
+endif
+
+NOSTDINC_FLAGS += \
+	-I$(BACKPORT_DIR)/backport-include/ \
+	-I$(BACKPORT_DIR)/backport-include/uapi \
+	-I$(BACKPORT_DIR)/include/ \
+	-I$(BACKPORT_DIR)/include/uapi \
+	-include backport/backport.h \
+	$(call backport-cc-disable-warning, unused-but-set-variable) \
+	-DCPTCFG_VERSION=\"$(BACKPORTS_VERSION)\" \
+	-DCPTCFG_KERNEL_VERSION=\"$(BACKPORTED_KERNEL_VERSION)\" \
+	-DCPTCFG_KERNEL_NAME=\"$(BACKPORTED_KERNEL_NAME)\" \
+	-DCPTCFG_KERNEL_CODE=$(BACKPORTED_LINUX_VERSION_CODE)
+
+KBUILD_EXTRA_SYMBOLS += $(BACKPORT_DIR)/Module.symvers
+endif
+
+EXTRA_CFLAGS += -Wno-unused-function -Wno-implicit-fallthrough
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DCONFIG_RTW_IOCTL_SET_COUNTRY
+EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
+
+ARCH ?= arm64
+CROSS_COMPILE ?= aarch64-linux-
+KSRC ?= /opt/FriendlyARM/build/linux-4.4.y
+KLIB ?= /tmp/wireless-modules
+INSTALL_PREFIX :=
+
+EXTRA_CFLAGS += -I$(src)/platform
+_PLATFORM_FILES += platform/platform_ops.o
+OBJS += $(_PLATFORM_FILES)
+
+ifeq ($(CONFIG_PLATFORM_ANDROID), y)
+ifeq ($(KERNELRELEASE),)
+$(info *  Building driver with Android support)
+endif
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_ANDROID
+EXTRA_CFLAGS += -DCONFIG_POWER_SAVING
+endif
+
+ifeq ($(KERNELRELEASE),)
+$(info *)
+$(info *    Kernel TOP-Dir: $(KSRC) )
+$(info *)
+$(info *  Copyright 2024 FriendlyELEC (http://www.friendlyarm.com/))
+$(info ********************************************************************************)
+endif
+endif # END of VENDOR_FRIENDLYARM }
 
 ########### PLATFORM OPS  ##########################
 # Import platform assigned KSRC and CROSS_COMPILE

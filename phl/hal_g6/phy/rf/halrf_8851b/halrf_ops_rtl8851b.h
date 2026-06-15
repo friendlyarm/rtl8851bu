@@ -23,12 +23,10 @@
  *
  *****************************************************************************/
 #ifndef __HALRF_OPS_RTL8851B_H__
-#define __HALRF_OPS_RTL8851B__
+#define __HALRF_OPS_RTL8851B_H__
+
 #ifdef RF_8851B_SUPPORT
-
-
 void rf_set_ops_8851b(struct rf_info *rf) ;
-
-
 #endif
-#endif /*  __HALRF_OPS_RTL8851B_H__ */
+
+#endif /* __HALRF_OPS_RTL8851B_H__ */

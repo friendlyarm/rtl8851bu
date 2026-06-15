@@ -7,6 +7,7 @@ EXTRA_CFLAGS += -O2
 #EXTRA_CFLAGS += -pedantic
 #EXTRA_CFLAGS += -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes
 EXTRA_CFLAGS += -Wno-missing-declarations -Wno-missing-prototypes -Wno-enum-conversion
+EXTRA_CFLAGS += -Wno-address -Wno-empty-body
 
 EXTRA_CFLAGS += -Wno-unused-variable
 #EXTRA_CFLAGS += -Wno-unused-value
@@ -886,6 +887,11 @@ obj-$(CONFIG_RTL8851BU) += $(RTKM_MODULE).o
 endif
 endif
 
+# Workaround for 6.15+
+# e966ad0edd00 ("kbuild: remove EXTRA_*FLAGS support")
+ccflags-y = $(EXTRA_CFLAGS)
+ldflags-y = $(EXTRA_LDFLAGS)
+
 else
 
 export CONFIG_RTL8851BU = m
@@ -975,20 +981,3 @@ clean:
 	rm -fr .tmp_versions
 endif
 
-############ ANDROID COMMON KERNEL ############
-# Convert to absolute path
-ifneq ($(srctree),)
-_EXTRA_CFLAGS :=
-_INC_CFLAGS :=
-$(foreach flag,$(EXTRA_CFLAGS),\
- $(if $(shell echo $(flag) | grep "\-I"),\
-  $(eval _INC_CFLAGS += $(flag)),\
-  $(eval _EXTRA_CFLAGS += $(flag))\
- )\
-)
-_INC_CFLAGS := \
-$(foreach flag,$(subst -I,,$(_INC_CFLAGS)),\
- $(shell if test -d $(srctree)/$(flag); then echo -I$$(cd $(srctree)/$(flag) && pwd); else echo -I$(flag); fi)\
-)
-EXTRA_CFLAGS := $(_EXTRA_CFLAGS) $(_INC_CFLAGS)
-endif

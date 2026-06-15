@@ -1102,6 +1102,15 @@ void rtw_cfg80211_cac_started_event(struct rf_ctl_t *rfctl, u8 band_idx
 	rtw_cfg80211_cac_event(rfctl, band_idx, ifbmp, cch, bw, NL80211_RADAR_CAC_STARTED, __func__);
 }
 
+static inline bool rtw_cfg80211_cac_started(struct wireless_dev *wdev)
+{
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0))
+	return wdev->links[0].cac_started;
+#else
+	return wdev->cac_started;
+#endif
+}
+
 void rtw_cfg80211_cac_finished_event(struct rf_ctl_t *rfctl, u8 band_idx
 	, u8 ifbmp, u8 cch, enum channel_width bw)
 {
@@ -1118,7 +1127,7 @@ void rtw_cfg80211_cac_finished_event(struct rf_ctl_t *rfctl, u8 band_idx
 		if (!iface || !(ifbmp & BIT(iface->iface_id)))
 			continue;
 		/* finish only for wdev with cac_started */
-		if (!iface->rtw_wdev || !iface->rtw_wdev->cac_started)
+		if (!iface->rtw_wdev || !rtw_cfg80211_cac_started(iface->rtw_wdev))
 			ifbmp &= ~BIT(iface->iface_id);
 	}
 
@@ -1141,7 +1150,7 @@ void rtw_cfg80211_cac_aborted_event(struct rf_ctl_t *rfctl, u8 band_idx
 		if (!iface || !(ifbmp & BIT(iface->iface_id)))
 			continue;
 		/* abort only for wdev with cac_started */
-		if (!iface->rtw_wdev || !iface->rtw_wdev->cac_started)
+		if (!iface->rtw_wdev || !rtw_cfg80211_cac_started(iface->rtw_wdev))
 			ifbmp &= ~BIT(iface->iface_id);
 	}
 
@@ -1228,9 +1237,9 @@ void rtw_cfg80211_cac_force_finished(struct rf_ctl_t *rfctl, u8 band_idx
 			started_ifbmp &= ~BIT(iface->iface_id);
 			continue;
 		}
-		if (need_start && iface->rtw_wdev->cac_started)
+		if (need_start && rtw_cfg80211_cac_started(iface->rtw_wdev))
 			started_ifbmp &= ~BIT(iface->iface_id);
-		else if (!need_start && !iface->rtw_wdev->cac_started)
+		else if (!need_start && !rtw_cfg80211_cac_started(iface->rtw_wdev))
 			finished_ifbmp &= ~BIT(iface->iface_id);
 	}
 
